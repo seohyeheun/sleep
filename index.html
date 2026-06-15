@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>被透支的睡眠：昼夜失序，谁偷走了我们的睡眠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+    --bg1:#1a3458;--bg2:#102544;--bg3:#091525;
+    --card:rgba(14,28,52,0.92);--card-border:rgba(90,160,240,0.28);
+    --blue:#50a8f0;--blue-l:#80c8ff;--blue-d:#3080c8;
+    --teal:#5cc8a0;--teal-d:#3a9a78;
+    --red:#e07080;--amber:#d0a050;
+    --white:#eaf2ff;--white2:#a0c0e8;--white3:#6090b8;
+    --text:#e0ecff;--text2:#90b8e0;--text3:#6090b8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+    background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 40%,var(--bg3) 100%);
+    background-attachment:fixed;color:var(--text);
+    font-family:'Noto Sans SC',sans-serif;font-weight:300;
+    line-height:1.9;overflow-x:hidden;min-height:100vh;
+}
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d) ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.06}to{opacity:.8}}
+.meteor{position:fixed;width:2px;border-radius:50%;pointer-events:none;z-index:1;opacity:0}
+.meteor::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:60px;background:linear-gradient(to bottom,transparent,rgba(130,190,255,.7),#fff);border-radius:50%}
+.meteor::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:5px;height:5px;background:#fff;border-radius:50%;box-shadow:0 0 10px 3px rgba(130,190,255,.6)}
+@keyframes meteorFall{0%{opacity:0;transform:translateY(-30px)}6%{opacity:1}85%{opacity:.5}100%{opacity:0;transform:translateY(105vh)}}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(6,12,25,.8);backdrop-filter:blur(10px);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s}
+.modal-overlay.on{opacity:1;pointer-events:all}
+.modal-box{background:linear-gradient(135deg,#0e1e3a,#0c1830);border:1px solid var(--card-border);border-radius:18px;padding:2.5rem;max-width:600px;width:92%;max-height:82vh;overflow-y:auto;position:relative;transform:translateY(30px) scale(.96);transition:transform .35s}
+.modal-overlay.on .modal-box{transform:translateY(0) scale(1)}
+.modal-box h3{font-family:'Noto Serif SC',serif;font-size:1.2rem;margin-bottom:1rem;color:var(--blue)}
+.modal-box p,.modal-box li{font-size:.88rem;color:var(--text2);line-height:2;margin-bottom:.3rem}
+.modal-box ul{list-style:none;padding:0}
+.modal-box ul li::before{content:'›';color:var(--blue);margin-right:.5rem;font-weight:700}
+.modal-close{position:absolute;top:1rem;right:1.2rem;background:none;border:none;color:var(--text3);font-size:1.5rem;cursor:pointer;transition:color .2s}
+.modal-close:hover{color:var(--white)}
+.modal-quote{background:rgba(80,168,240,.07);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:1rem 1.3rem;margin:.8rem 0;font-style:italic}
+.modal-quote .qw{display:block;font-style:normal;font-size:.76rem;color:var(--text3);margin-top:.4rem}
+.cmp-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:.8rem 0}
+.cmp-card{background:rgba(80,168,240,.05);border:1px solid var(--card-border);border-radius:12px;padding:1.1rem;text-align:center}
+.cmp-card h4{font-size:.85rem;margin-bottom:.4rem;color:var(--blue)}
+.cmp-card .cv{font-family:'Noto Serif SC',serif;font-size:1.5rem;font-weight:700;line-height:1.3;color:var(--blue-l)}
+.cmp-card p{font-size:.75rem;color:var(--text3)}
+.cmp-card.w h4{color:var(--blue-l)}.cmp-card.w .cv{color:#fff}
+
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:4rem 2rem;z-index:2}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 25%,rgba(80,168,240,.08) 0%,transparent 55%),radial-gradient(ellipse at 70% 70%,rgba(92,200,160,.04) 0%,transparent 50%);z-index:0}
+.hero-in{position:relative;z-index:1;max-width:960px}
+.hero-label{font-size:.78rem;letter-spacing:.35em;color:var(--blue);margin-bottom:2rem;font-weight:500;opacity:0;animation:fadeUp .8s ease .2s forwards}
+.hero-title{font-family:'Noto Serif SC',serif;font-weight:900;line-height:1.1;margin-bottom:.8rem;opacity:0;animation:fadeUp .8s ease .35s forwards}
+.hero-title .l1{display:block;font-size:clamp(3.6rem,8vw,6.5rem);background:linear-gradient(135deg,#fff 10%,var(--blue-l) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.12em;white-space:nowrap}
+.hero-title .l2{display:block;font-size:clamp(1.6rem,4vw,2.8rem);background:linear-gradient(90deg,var(--blue),var(--blue-l),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:.5rem;letter-spacing:.1em;white-space:nowrap}
+.hero-sub{font-size:1.05rem;color:var(--text2);max-width:520px;margin:0 auto 2.5rem;opacity:0;animation:fadeUp .8s ease .55s forwards;line-height:1.8}
+.hero-stats{display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s ease .7s forwards}
+.hero-stat .v{font-family:'Noto Serif SC',serif;font-size:2.5rem;font-weight:900;color:var(--blue-l);line-height:1}
+.hero-stat .v .u{font-size:1rem;color:var(--text2)}
+.hero-stat .l{font-size:.8rem;color:var(--text2);margin-top:.3rem}
+.hero-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);animation:bounce 2s ease infinite;z-index:1}
+.hero-scroll svg{width:22px;height:22px;stroke:var(--text3);stroke-width:1.5;fill:none}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(10px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+.container{max-width:1080px;margin:0 auto;padding:0 2rem;position:relative;z-index:2}
+.section{padding:3.5rem 0;opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}
+.section.visible{opacity:1;transform:translateY(0)}
+.sec-num{font-family:'Noto Serif SC',serif;font-size:4.5rem;font-weight:900;color:rgba(80,168,240,.1);line-height:1;margin-bottom:-.8rem}
+.sec-title{font-family:'Noto Serif SC',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:700;margin-bottom:.5rem;color:var(--white)}
+.sec-lead{font-size:.95rem;color:var(--text2);margin-bottom:2rem;max-width:680px}
+
+.news-intro{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:2.5rem;margin:2.5rem 0 2rem;position:relative;overflow:hidden;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.news-intro::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom,var(--blue),var(--blue-l))}
+.news-tag{display:inline-block;font-size:.7rem;letter-spacing:.15em;color:var(--blue);border:1px solid rgba(80,168,240,.35);padding:.2rem .8rem;border-radius:100px;margin-bottom:1rem}
+.news-intro h3{font-family:'Noto Serif SC',serif;font-size:1.25rem;margin-bottom:.8rem;color:var(--white)}
+.news-intro p{color:var(--text2);font-size:.93rem;line-height:2.1}
+.cite{font-size:.72rem;color:var(--text3);margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(90,160,240,.12)}
+.chart-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:2rem;margin:2rem 0;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.chart-box{width:100%;height:420px}
+.chart-src{font-size:.7rem;color:var(--text3);text-align:right;margin-top:.8rem}
+.chart-hint{font-size:.78rem;color:var(--blue);text-align:center;margin-top:.5rem}
+.commentary{margin:2rem 0;padding:0 .3rem}
+.commentary p{font-size:.94rem;color:var(--text2);line-height:2.1;margin-bottom:1rem}
+.commentary strong{color:var(--white);font-weight:500}
+.hl-box{background:linear-gradient(135deg,rgba(80,168,240,.08),rgba(92,200,160,.05));border-left:3px solid var(--blue);border-radius:0 12px 12px 0;padding:1.2rem 1.5rem;margin:1.2rem 0}
+.hl-box p{color:var(--white);font-size:.9rem;margin-bottom:0}
+
+.wc-wrap{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:2.5rem 2rem;margin:2rem 0;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.wc{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.8rem 1.5rem;min-height:320px;padding:1rem}
+.cw{font-family:'Noto Serif SC',serif;font-weight:900;cursor:pointer;color:#fff;position:relative;opacity:0;transform:scale(0);text-shadow:0 0 12px rgba(80,168,240,.7),0 0 25px rgba(80,168,240,.35),0 0 50px rgba(80,168,240,.15);transition:transform .15s}
+.cw.pop{opacity:1;transform:scale(1);animation:starPop .6s ease forwards}
+@keyframes starPop{0%{opacity:0;transform:scale(0);text-shadow:0 0 0 transparent}40%{opacity:1;transform:scale(1.3);text-shadow:0 0 30px #fff,0 0 60px rgba(80,168,240,.9)}100%{opacity:1;transform:scale(1);text-shadow:0 0 12px rgba(80,168,240,.7),0 0 25px rgba(80,168,240,.35),0 0 50px rgba(80,168,240,.15)}}
+.cw:hover{transform:scale(1.15)!important;text-shadow:0 0 20px #fff,0 0 40px rgba(80,168,240,.8),0 0 80px rgba(80,168,240,.4)}
+.cw-tip{position:absolute;bottom:calc(100% + 14px);left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#0e1e3a,#122050);border:1px solid var(--card-border);border-radius:10px;padding:.8rem 1.1rem;width:270px;font-size:.8rem;font-weight:300;font-family:'Noto Sans SC',sans-serif;color:var(--text2);line-height:1.7;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s;text-align:left;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.cw-tip.show{opacity:1;pointer-events:all}
+.cw-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--card-border)}
+.radar-legend{display:flex;justify-content:center;gap:1rem;margin-top:.5rem;flex-wrap:wrap}
+.rbtn{padding:.5rem 1.2rem;border:1px solid var(--card-border);border-radius:100px;background:transparent;color:var(--text2);font-size:.82rem;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .3s}
+.rbtn:hover{border-color:var(--blue);color:var(--blue)}
+.rbtn .dt{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.4rem}
+
+.case-wrap{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:3rem;margin:3rem 0;position:relative;overflow:hidden;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.case-wrap::before{content:'';position:absolute;top:0;right:0;width:350px;height:350px;background:radial-gradient(circle,rgba(80,168,240,.04) 0%,transparent 70%);pointer-events:none}
+.case-tag{display:inline-block;font-size:.68rem;letter-spacing:.12em;color:var(--red);border:1px solid rgba(224,112,128,.3);padding:.15rem .7rem;border-radius:100px;margin-bottom:.8rem}
+.case-wrap h3{font-family:'Noto Serif SC',serif;font-size:1.35rem;margin-bottom:.5rem;color:var(--white)}
+.case-wrap .case-src{font-size:.82rem;color:var(--text3);margin-bottom:1.5rem}
+.case-body p{font-size:.92rem;color:var(--text2);line-height:2.15;margin-bottom:1.1rem}
+.case-body strong{color:var(--white);font-weight:500}
+.case-body .case-hl{background:rgba(224,112,128,.06);border-left:3px solid var(--red);border-radius:0 12px 12px 0;padding:1.2rem 1.5rem;margin:1.2rem 0}
+.case-body .case-hl p{color:var(--white);font-size:.9rem;margin:0}
+.case-body .case-hl-blue{background:rgba(80,168,240,.06);border-left:3px solid var(--blue);border-radius:0 12px 12px 0;padding:1.2rem 1.5rem;margin:1.2rem 0}
+.case-body .case-hl-blue p{color:var(--white);font-size:.9rem;margin:0}
+.case-quote{background:rgba(80,168,240,.05);border-radius:12px;padding:1.3rem 1.5rem;margin-top:1.5rem;font-style:italic;font-size:.9rem;color:var(--text2);line-height:2;border:1px solid rgba(90,160,240,.15)}
+.case-quote .cq{display:block;font-style:normal;font-size:.76rem;color:var(--text3);margin-top:.5rem}
+
+.quiz-section{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:2.5rem;margin:2.5rem 0;text-align:center;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.quiz-section h3{font-family:'Noto Serif SC',serif;font-size:1.4rem;margin-bottom:.4rem;color:var(--white)}
+.quiz-section .qs{color:var(--text3);font-size:.85rem;margin-bottom:1.5rem}
+.qprog{display:flex;justify-content:center;gap:.4rem;margin-bottom:1.5rem}
+.qprog .dp{width:8px;height:8px;border-radius:50%;background:rgba(90,160,240,.15);transition:background .3s}
+.qprog .dp.ok{background:var(--teal)}.qprog .dp.bad{background:var(--red)}
+.qprog .dp.cur{background:var(--blue);box-shadow:0 0 8px var(--blue)}
+.qq{font-size:1.05rem;font-weight:500;margin-bottom:1.2rem;min-height:2em;color:var(--white)}
+.q-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem;margin-bottom:1rem}
+.q-opt{padding:.55rem 1.4rem;border:1px solid var(--card-border);border-radius:100px;background:transparent;color:var(--text2);font-size:.87rem;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .3s}
+.q-opt:hover{border-color:var(--blue);color:var(--blue);background:rgba(80,168,240,.08)}
+.q-opt.correct{border-color:var(--teal);color:var(--teal);background:rgba(92,200,160,.08)}
+.q-opt.wrong{border-color:var(--red);color:var(--red);background:rgba(224,112,128,.06)}
+.q-result{font-size:.87rem;color:var(--text2);min-height:1.5em;margin-top:.8rem;line-height:1.8}
+.qrpt{display:none;text-align:center}
+.qrpt h3{font-family:'Noto Serif SC',serif;font-size:1.3rem;margin-bottom:1.5rem;color:var(--white)}
+.rpt-circle{position:relative;width:160px;height:160px;margin:0 auto 1.5rem}
+.rpt-circle .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rpt-circle .pv{font-family:'Noto Serif SC',serif;font-size:2.2rem;font-weight:900;color:var(--blue-l)}
+.rpt-circle .pl{font-size:.73rem;color:var(--text3)}
+.rpt-lvl{font-family:'Noto Serif SC',serif;font-size:1.2rem;margin-bottom:.5rem}
+.rpt-msg{color:var(--text2);font-size:.88rem;line-height:1.9;max-width:460px;margin:0 auto 1.5rem}
+.rst-btn{padding:.6rem 2rem;border:1px solid var(--card-border);border-radius:100px;background:transparent;color:var(--blue);font-size:.85rem;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .3s}
+.rst-btn:hover{background:rgba(80,168,240,.1);border-color:var(--blue)}
+.calc-section{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:2.5rem;margin:2.5rem 0;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.calc-section h3{font-family:'Noto Serif SC',serif;font-size:1.3rem;text-align:center;margin-bottom:.4rem;color:var(--white)}
+.calc-section .cs{color:var(--text3);font-size:.85rem;text-align:center;margin-bottom:1.8rem}
+.calc-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:end;max-width:580px;margin:0 auto 1.5rem}
+.calc-field label{display:block;font-size:.82rem;color:var(--text2);margin-bottom:.4rem}
+.calc-field input,.calc-field select{width:100%;padding:.8rem 1rem;background:rgba(80,168,240,.08);border:1px solid var(--card-border);border-radius:10px;color:var(--white);font-size:1.05rem;font-weight:500;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border-color .3s;appearance:auto}
+.calc-field input:focus,.calc-field select:focus{border-color:var(--blue)}
+.calc-field select option{background:#0e1e3a;color:var(--white);padding:.5rem}
+.calc-arrow{font-size:1.4rem;color:var(--text3);align-self:end;padding-bottom:.7rem;text-align:center}
+.calc-btn{display:block;margin:0 auto;padding:.7rem 2.2rem;background:linear-gradient(135deg,var(--blue-d),var(--blue));border:none;border-radius:100px;color:#fff;font-size:.9rem;font-weight:500;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:opacity .3s,transform .2s}
+.calc-btn:hover{opacity:.85;transform:scale(1.02)}
+.calc-result{text-align:center;margin-top:1.5rem;min-height:3em}
+.calc-result .rt{font-family:'Noto Serif SC',serif;font-size:1.8rem;font-weight:700;color:var(--teal)}
+.calc-result .rt2{font-family:'Noto Serif SC',serif;font-size:1.05rem;color:var(--blue);margin-top:.3rem}
+.calc-result .ri{font-size:.82rem;color:var(--text3);margin-top:.5rem;line-height:1.8}
+.pledge-section{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:2.5rem;margin:2.5rem 0;text-align:center;box-shadow:0 4px 30px rgba(80,168,240,.05)}
+.pledge-section h3{font-family:'Noto Serif SC',serif;font-size:1.3rem;margin-bottom:.4rem;color:var(--white)}
+.pledge-section .ps{color:var(--text3);font-size:.85rem;margin-bottom:1.5rem}
+.pledge-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem;margin-bottom:1.5rem}
+.pledge-opt{padding:.55rem 1.2rem;border:1px solid var(--card-border);border-radius:12px;background:transparent;color:var(--text2);font-size:.85rem;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .3s}
+.pledge-opt:hover{border-color:var(--teal);color:var(--teal)}
+.pledge-opt.active{border-color:var(--teal);color:#fff;background:rgba(92,200,160,.1)}
+.pledge-submit{padding:.6rem 2.2rem;background:linear-gradient(135deg,var(--teal-d),var(--teal));border:none;border-radius:100px;color:#fff;font-size:.9rem;font-weight:500;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:opacity .3s}
+.pledge-submit:hover{opacity:.85}
+.pledge-counter{margin-top:1.2rem;font-size:.82rem;color:var(--text3)}
+.pledge-counter span{color:var(--teal);font-weight:500;font-size:1rem}
+
+/* ── Solutions Section 05: larger detailed icons ── */
+.solutions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem;margin:2rem 0}
+.sol-card{background:rgba(80,168,240,.04);border:1px solid var(--card-border);border-radius:14px;padding:2rem 1.8rem;transition:border-color .3s,transform .3s}
+.sol-card:hover{border-color:rgba(80,168,240,.5);transform:translateY(-3px)}
+.sol-card h4{font-family:'Noto Serif SC',serif;font-size:1.05rem;margin-bottom:.5rem;color:var(--white)}
+.sol-card p{font-size:.86rem;color:var(--text2);line-height:1.9}
+.sol-icon-wrap{width:64px;height:64px;margin:0 auto 1.2rem;background:rgba(80,168,240,.06);border:1px solid rgba(80,168,240,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:border-color .3s}
+.sol-card:hover .sol-icon-wrap{border-color:rgba(80,168,240,.35);background:rgba(80,168,240,.09)}
+.sol-icon-wrap svg{width:40px;height:40px}
+
+.footer{text-align:center;padding:3.5rem 2rem 2.5rem;border-top:1px solid rgba(90,160,240,.12);margin-top:2rem}
+.footer .fq{font-family:'Noto Serif SC',serif;font-size:1.1rem;color:var(--text2);margin-bottom:1.5rem;font-style:italic}
+.footer p{font-size:.75rem;color:var(--text3);line-height:1.8}
+@media(max-width:768px){
+    .hero-title .l1{white-space:normal}.hero-title .l2{white-space:normal}.hero-sub{max-width:90%}
+    .chart-box{height:340px}.calc-grid{grid-template-columns:1fr}.calc-arrow{display:none}
+    .cmp-row{grid-template-columns:1fr}
+}
+.rv{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s}
+.rv.vis{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="sky"></div>
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeM()">
+    <div class="modal-box"><button class="modal-close" onclick="closeM()">&times;</button><h3 id="mT"></h3><div id="mB"></div></div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+    <div class="hero-in">
+        <div class="hero-label">数据新闻 · DATA JOURNALISM</div>
+        <h1 class="hero-title">
+            <span class="l1">被透支的睡眠</span>
+            <span class="l2">昼夜失序，谁偷走了我们的睡眠</span>
+        </h1>
+        <p class="hero-sub">中国超5亿成年人正被睡眠问题困扰，<br>我们还能安然入眠吗？</p>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="v">6.85<span class="u"> 小时</span></div><div class="l">成年人每晚平均睡眠</div></div>
+            <div class="hero-stat"><div class="v">48.5<span class="u">%</span></div><div class="l">存在睡眠困扰</div></div>
+            <div class="hero-stat"><div class="v">60.9<span class="u">%</span></div><div class="l">零点后才入睡</div></div>
+        </div>
+    </div>
+    <div class="hero-scroll"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+</section>
+
+<div class="container">
+
+<!-- ═══ NEWS ═══ -->
+<div class="news-intro rv">
+    <span class="news-tag">新闻背景</span>
+    <h3>凌晨两点的中国：一场看不见的健康危机</h3>
+    <p>2026年最新数据显示，中国人平均每晚只睡6.97小时，四分之一的人睡不到6小时。2017年诺贝尔生理学奖颁给了研究"生物钟"的三位科学家，证明昼夜节律对人体健康至关重要。但电灯、屏幕和996工作制，正让我们与自然节律渐行渐远——十年间，中国人平均少睡了近1小时。</p>
+    <div class="cite">来源：中国睡眠研究会《2025/2026中国睡眠健康研究白皮书》、北京大学陆林院士团队综述</div>
+</div>
+
+<!-- ═══ 01 PIE ═══ -->
+<div class="section rv">
+    <div class="sec-num">01</div>
+    <h2 class="sec-title">谁在深夜清醒着？</h2>
+    <p class="sec-lead">超过六成的人零点以后才入睡。点击饼图各区域，看看谁在熬夜。</p>
+    <div class="chart-card"><div id="pieChart" class="chart-box"></div><div class="chart-hint">👆 点击各区域查看熬夜人群画像</div><div class="chart-src">数据来源：《2025中国睡眠健康研究白皮书》《2024中国居民睡眠健康白皮书》</div></div>
+    <div class="commentary">
+        <p>全国18岁以上人群平均入睡时间已推迟到23:15。大学生里，四分之一凌晨2点后才放下手机，只有两成人能在零点前入睡。</p>
+        <div class="hl-box"><p>很多人觉得"只要睡够时间，晚点睡没关系"。但科学研究表明，晚上11点到凌晨3点是身体修复的黄金时段。熬夜不仅缩短了睡眠时间，更打乱了肝脏修复和免疫系统的节律。</p></div>
+        <p>一线城市更严峻：北上广深平均入睡推迟到凌晨1:15，76%的上班族睡前还要处理工作消息。59%的大学生存在失眠症状。</p>
+    </div>
+</div>
+
+<!-- ═══ 02 WORD CLOUD ═══ -->
+<div class="section rv">
+    <div class="sec-num">02</div>
+    <h2 class="sec-title">深夜不眠的理由</h2>
+    <p class="sec-lead">被问"你为什么熬夜"，这些回答折射出一个时代的压力。点击词语查看详情。</p>
+    <div class="wc-wrap"><div class="wc" id="wordCloud"></div><div class="chart-src">来源：《2025国民睡眠健康报告》《2025中国睡眠健康调查报告》</div></div>
+    <div class="commentary">
+        <p>最大的几个词——<strong>工作压力、手机依赖、报复性熬夜、焦虑</strong>——指向同一个事实：我们不是不想睡，而是没有"权利"睡。73%的人说，熬夜是"唯一属于自己的时间"。</p>
+        <div class="hl-box"><p>一个新趋势：选择"学习充电"作为熬夜理由的比例从2019年的17%涨到了2025年的39%。技术迭代太快，知识焦虑让睡眠变成了追赶时代的"隐形赛道"。</p></div>
+    </div>
+</div>
+
+<!-- ═══ 03 RADAR ═══ -->
+<div class="section rv">
+    <div class="sec-num">03</div>
+    <h2 class="sec-title">透支的代价：六面受敌的身体</h2>
+    <p class="sec-lead">熬夜不是"少睡一会"，而是对全身六大系统的同时攻击。点击按钮对比两类人群。</p>
+    <div class="chart-card"><div id="radarChart" class="chart-box"></div><div class="radar-legend"><button class="rbtn" onclick="showR('bad')"><span class="dt" style="background:var(--red)"></span>长期熬夜者</button><button class="rbtn" onclick="showR('good')"><span class="dt" style="background:var(--blue-l)"></span>规律作息者</button></div><div class="chart-hint">👆 点击按钮查看详细健康对比</div><div class="chart-src">综合来源：《JAMA Network Open》《Science Advances》《Nature Communications》</div></div>
+    <div class="commentary">
+        <p><strong>心血管最先受伤。</strong>每晚从7小时缩到5.5小时，死亡风险增加34%。长期睡眠不足的人中风风险比正常人高4.5倍。</p>
+        <p><strong>免疫系统也会崩溃。</strong>哪怕只一天不睡觉，体内免疫细胞就会失控，引发全身性炎症。</p>
+        <div class="hl-box"><p>哥伦比亚大学研究：每天睡6.4到7.8小时是"健康谷底"——低于6小时或超过8小时，器官衰老都会加快。</p></div>
+    </div>
+</div>
+
+<!-- ═══ 04 DONUT ═══ -->
+<div class="section rv">
+    <div class="sec-num">04</div>
+    <h2 class="sec-title">知行悖论：知道不健康，还是在熬</h2>
+    <p class="sec-lead">超八成人知道熬夜有害，能"睡眠自由"的不到12%。点击图表听听他们的声音。</p>
+    <div class="chart-card"><div id="donutChart" class="chart-box"></div><div class="chart-hint">👆 点击各区域听听他们怎么说</div><div class="chart-src">来源：《2025中国睡眠健康研究白皮书》《2024中国居民睡眠健康白皮书》</div></div>
+    <div class="commentary"><p>最深层的矛盾：<strong>不是不知道，而是做不到</strong>。76%上班族睡前还要回消息，56%大学生每天刷手机超8小时。企业因睡眠问题损失的生产力占GDP的1.2%。</p></div>
+</div>
+
+<!-- ═══ CASE ═══ -->
+<div class="section rv">
+    <div class="case-wrap">
+        <span class="case-tag">真实新闻案例</span>
+        <h3>一觉醒来右眼失明：26岁小伙的熬夜之殇</h3>
+        <div class="case-src">来源：南海网 · 海南省眼科医院</div>
+        <div class="case-body">
+            <p>海南省眼科医院曾接诊过一位年仅26岁的患者李程（化名）。身高一米八、体重不到140斤的他，看起来和普通年轻人没什么两样。然而就在就诊前一天，他经历了人生中最恐惧的一刻——<strong>一觉醒来，右眼完全看不见了</strong>。</p>
+            <p>李程是一名平面设计师，平时工作本就需要长时间面对电脑。下班后，他又有一个雷打不动的习惯——追剧。每天下班回家吃完饭，他就窝在沙发上开始看电视剧，一看就停不下来。周末更夸张，经常从下午看到凌晨四五点，第二天中午才醒。这样的生活，<strong>他已经持续了三年多</strong>。在他看来，自己年轻、身体底子好，熬夜顶多就是第二天有点困，没什么大不了的。</p>
+            <p>然而身体发出的信号比他想象的来得更早、更猛烈。大约半年前，李程开始频繁感觉右眼干涩、酸胀，偶尔还会出现短暂的视力模糊。他以为是用眼过度，滴点眼药水就继续熬夜。直到那天早上，他像往常一样睁开眼，却发现<strong>右眼一片漆黑，什么都看不见了</strong>。</p>
+            <div class="case-hl"><p>医生检查后给出了令人震惊的诊断：<strong>右眼视网膜中央动脉阻塞</strong>。通俗地说，就是给视网膜供血的主血管被堵住了，视网膜因为缺血而坏死。这种病在眼科属于急症中的急症，黄金救治时间只有90分钟。而李程从发现失明到就医，已经过去了十几个小时。</p></div>
+            <p>海南省眼科医院眼底病专科医生解释说，<strong>视网膜中央动脉阻塞多发于有高血压、糖尿病的中老年人</strong>，但近年来在年轻患者身上越来越常见。李程虽然年纪轻轻，但三年多的长期熬夜已经让他的血管承受了巨大的压力。熬夜会导致交感神经持续兴奋，血管长期处于收缩状态，血液黏稠度升高。</p>
+            <p>更令人心痛的是，由于错过最佳救治时机，<strong>李程右眼的视力已经无法恢复</strong>。一个26岁的年轻人，余生都只能用一只眼睛看这个世界。李程的案例并非孤例。杭州的唐羽（化名），从18岁起就没在凌晨2点前睡过觉，27岁脸上长出了老年斑。还有28岁的深圳IT从业者王浩（化名），连续加班三个月后突发心肌梗死。</p>
+            <div class="case-hl-blue"><p>这些年轻人用健康甚至生命换来的教训告诉我们：<strong>熬夜的代价不是"第二天多睡一会儿"就能弥补的</strong>。它对身体的伤害是累积的、系统性的，可能在某个清晨突然爆发。</p></div>
+            <div class="case-quote">"我以前总觉得年轻就是本钱，熬夜没什么大不了。直到什么都看不见了，才明白那些深夜追的剧、刷的手机，不值得我用一只眼睛去换。"<span class="cq">—— 李程，术后访谈</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ QUIZ ═══ -->
+<div class="quiz-section rv">
+    <h3>你的睡眠认知测试</h3>
+    <p class="qs">4道题，测测你对睡眠了解多少</p>
+    <div class="qprog" id="qProg"></div>
+    <div id="quizArea"><div class="qq" id="qQ"></div><div class="q-opts" id="qOpts"></div><div class="q-result" id="qResult"></div></div>
+    <div class="qrpt" id="quizReport">
+        <h3>你的睡眠认知报告</h3>
+        <div class="rpt-circle"><svg width="160" height="160" viewBox="0 0 160 160"><circle cx="80" cy="80" r="68" stroke="rgba(80,168,240,.12)" stroke-width="10" fill="none"/><circle id="rRing" cx="80" cy="80" r="68" stroke="url(#rg)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="427" stroke-dashoffset="427" transform="rotate(-90 80 80)" style="transition:stroke-dashoffset 1.2s ease"/><defs><linearGradient id="rg"><stop offset="0%" stop-color="#3080c8"/><stop offset="100%" stop-color="#80c8ff"/></linearGradient></defs></svg><div class="pct"><div class="pv" id="rPct">0%</div><div class="pl">认知得分</div></div></div>
+        <div class="rpt-lvl" id="rLvl"></div><div class="rpt-msg" id="rMsg"></div><button class="rst-btn" onclick="restartQ()">重新测试</button>
+    </div>
+</div>
+
+<!-- ═══ CALC ═══ -->
+<div class="calc-section rv">
+    <h3>你的理想入睡时间</h3>
+    <p class="cs">输入起床时间和年龄段，帮你算出最佳入睡时间</p>
+    <div class="calc-grid">
+        <div class="calc-field"><label>起床时间</label><input type="time" id="wakeTime" value="07:00"></div>
+        <div class="calc-arrow">→</div>
+        <div class="calc-field"><label>你的年龄段</label><select id="ageGroup"><option value="11">3 – 5 岁（推荐 10–13 小时）</option><option value="10">6 – 9 岁（推荐 9–12 小时）</option><option value="9.5">10 – 13 岁（推荐 9–11 小时）</option><option value="9">14 – 15 岁（推荐 8–10 小时）</option><option value="8.5">16 – 17 岁（推荐 8–10 小时）</option><option value="8" selected>18 – 25 岁（推荐 7–9 小时）</option><option value="7.5">26 – 30 岁（推荐 7–9 小时）</option><option value="7.5">31 – 35 岁（推荐 7–9 小时）</option><option value="7.5">36 – 45 岁（推荐 7–8 小时）</option><option value="7">46 – 55 岁（推荐 7–8 小时）</option><option value="7">56 – 64 岁（推荐 7–8 小时）</option><option value="6.5">65 – 75 岁（推荐 6–8 小时）</option><option value="6.5">75 岁以上（推荐 6–8 小时）</option></select></div>
+    </div>
+    <button class="calc-btn" onclick="calcBed()">计算建议入睡时间</button>
+    <div class="calc-result" id="calcResult"></div>
+</div>
+
+<!-- ═══ PLEDGE ═══ -->
+<div class="pledge-section rv">
+    <h3>今晚，你愿意早睡吗？</h3>
+    <p class="ps">选择一个你今晚能做到的承诺</p>
+    <div class="pledge-opts"><button class="pledge-opt">23:00前熄灯</button><button class="pledge-opt">睡前1小时放下手机</button><button class="pledge-opt">不带工作上床</button><button class="pledge-opt">做10分钟放松训练</button><button class="pledge-opt">明早按时起床不赖床</button></div>
+    <button class="pledge-submit" onclick="submitPledge()">我承诺</button>
+    <div class="pledge-counter">已有 <span id="pledgeCount">2,847</span> 人做出承诺</div>
+</div>
+
+<!-- ═══ 05 SOLUTIONS ═══ -->
+<div class="section rv">
+    <div class="sec-num">05</div>
+    <h2 class="sec-title">重建节律：我们可以做什么？</h2>
+    <p class="sec-lead">从个人习惯到社会制度，改变正在发生。</p>
+    <div class="solutions-grid">
+
+        <!-- 1. Clock -->
+        <div class="sol-card">
+            <div class="sol-icon-wrap"><svg viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="21" r="15" stroke="#50a8f0" stroke-width="1.4"/>
+                <circle cx="20" cy="21" r="12.5" stroke="rgba(80,168,240,0.2)" stroke-width="0.5"/>
+                <!-- hour markers -->
+                <line x1="20" y1="10" x2="20" y2="12" stroke="#80c8ff" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="20" y1="30" x2="20" y2="32" stroke="rgba(128,200,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+                <line x1="9" y1="21" x2="11" y2="21" stroke="rgba(128,200,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+                <line x1="29" y1="21" x2="31" y2="21" stroke="rgba(128,200,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+                <!-- small marks -->
+                <line x1="12.3" y1="13.3" x2="13.2" y2="14.2" stroke="rgba(128,200,255,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <line x1="27.7" y1="13.3" x2="26.8" y2="14.2" stroke="rgba(128,200,255,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <line x1="12.3" y1="28.7" x2="13.2" y2="27.8" stroke="rgba(128,200,255,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <line x1="27.7" y1="28.7" x2="26.8" y2="27.8" stroke="rgba(128,200,255,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <!-- hands at 11:00 -->
+                <line x1="20" y1="21" x2="20" y2="13" stroke="#80c8ff" stroke-width="1.6" stroke-linecap="round"/>
+                <line x1="20" y1="21" x2="14.5" y2="18" stroke="#50a8f0" stroke-width="1.2" stroke-linecap="round"/>
+                <circle cx="20" cy="21" r="1.5" fill="#80c8ff"/>
+                <!-- crescent moon above -->
+                <path d="M31,5 A3.5,3.5 0 1,1 31,12 A2.5,2.5 0 1,0 31,5" fill="#80c8ff" opacity="0.5"/>
+                <circle cx="33" cy="3" r="0.5" fill="#80c8ff" opacity="0.4"/>
+                <!-- base shadow -->
+                <ellipse cx="20" cy="37" rx="8" ry="1.2" fill="rgba(80,168,240,0.06)"/>
+            </svg></div>
+            <h4>固定作息时间</h4>
+            <p>每天固定起床，误差不超15分钟，周末也一样。规律是校准生物钟最好的方式。</p>
+        </div>
+
+        <!-- 2. Phone + Stop -->
+        <div class="sol-card">
+            <div class="sol-icon-wrap"><svg viewBox="0 0 40 40" fill="none">
+                <!-- phone body -->
+                <rect x="12" y="6" width="16" height="28" rx="3" stroke="#80c8ff" stroke-width="1.4"/>
+                <rect x="14" y="9.5" width="12" height="18" rx="1" fill="rgba(80,168,240,0.08)" stroke="rgba(128,200,255,0.2)" stroke-width="0.5"/>
+                <!-- screen content -->
+                <line x1="16" y1="13" x2="24" y2="13" stroke="rgba(128,200,255,0.25)" stroke-width="0.8" stroke-linecap="round"/>
+                <line x1="16" y1="16" x2="22" y2="16" stroke="rgba(128,200,255,0.2)" stroke-width="0.6" stroke-linecap="round"/>
+                <rect x="16" y="19" width="8" height="5" rx="0.5" fill="rgba(80,168,240,0.1)"/>
+                <!-- home button -->
+                <circle cx="20" cy="30.5" r="1.5" stroke="rgba(128,200,255,0.3)" stroke-width="0.8"/>
+                <!-- Zzz waves -->
+                <text x="29" y="10" font-size="5.5" fill="rgba(80,168,240,0.45)" font-family="serif" font-style="italic">z</text>
+                <text x="32" y="6" font-size="7" fill="rgba(80,168,240,0.35)" font-family="serif" font-style="italic">z</text>
+                <text x="35" y="2" font-size="8.5" fill="rgba(80,168,240,0.2)" font-family="serif" font-style="italic">z</text>
+                <!-- diagonal line through phone (X) -->
+                <line x1="34" y1="18" x2="38" y2="24" stroke="#e07080" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="38" y1="18" x2="34" y2="24" stroke="#e07080" stroke-width="1.8" stroke-linecap="round"/>
+                <!-- glow dots -->
+                <circle cx="20" cy="22" r="0.4" fill="rgba(128,200,255,0.3)"/>
+                <!-- hand silhouette below -->
+                <path d="M17,35 Q14,35 14,33 L14,31 Q14,30 15,30 Q16,30 16,31 L16,33 Q16,34 17,34 L23,34 Q24,34 24,33 L24,31 Q24,30 25,30 Q26,30 26,31 L26,33 Q26,34 25,35 Z" fill="none" stroke="rgba(128,200,255,0.2)" stroke-width="0.6"/>
+            </svg></div>
+            <h4>睡前放下手机</h4>
+            <p>睡前90分钟不用电子设备，深度睡眠质量提升27%。把手机放在卧室外充电。</p>
+        </div>
+
+        <!-- 3. Running person -->
+        <div class="sol-card">
+            <div class="sol-icon-wrap"><svg viewBox="0 0 40 40" fill="none">
+                <!-- ground -->
+                <line x1="4" y1="35" x2="36" y2="35" stroke="rgba(92,200,160,0.15)" stroke-width="0.8"/>
+                <path d="M4,35 Q10,34 14,35 Q20,36 26,35 Q32,34 36,35" stroke="rgba(92,200,160,0.1)" stroke-width="0.5" fill="none"/>
+                <!-- head -->
+                <circle cx="17" cy="8" r="3.2" stroke="#5cc8a0" stroke-width="1.3" fill="rgba(92,200,160,0.08)"/>
+                <!-- hair motion lines -->
+                <path d="M14,7 Q12,5.5 10,6.5" stroke="rgba(92,200,160,0.3)" stroke-width="0.6" stroke-linecap="round"/>
+                <path d="M14.5,6 Q13,4 11,5" stroke="rgba(92,200,160,0.2)" stroke-width="0.5" stroke-linecap="round"/>
+                <!-- torso -->
+                <line x1="17" y1="11" x2="20" y2="20" stroke="#5cc8a0" stroke-width="1.6" stroke-linecap="round"/>
+                <!-- front arm (forward) -->
+                <path d="M18.5,14 L24,12 L27,14" stroke="#5cc8a0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- back arm (backward) -->
+                <path d="M18.5,14 L13,17 L10,15" stroke="rgba(92,200,160,0.6)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- front leg (forward stride) -->
+                <path d="M20,20 L26,28 L28,34" stroke="#5cc8a0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- back leg (pushing off) -->
+                <path d="M20,20 L14,27 L10,33" stroke="rgba(92,200,160,0.6)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- shoes -->
+                <path d="M28,34 L31,33.5" stroke="#5cc8a0" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M10,33 L7.5,32.5" stroke="rgba(92,200,160,0.5)" stroke-width="1" stroke-linecap="round"/>
+                <!-- motion lines -->
+                <line x1="32" y1="14" x2="36" y2="14" stroke="rgba(92,200,160,0.2)" stroke-width="0.6" stroke-linecap="round"/>
+                <line x1="32" y1="18" x2="38" y2="18" stroke="rgba(92,200,160,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <line x1="33" y1="22" x2="37" y2="22" stroke="rgba(92,200,160,0.15)" stroke-width="0.6" stroke-linecap="round"/>
+                <!-- heart rate line -->
+                <path d="M6,10 L9,10 L10,7 L11,13 L12,9 L13,10 L17,10" stroke="rgba(92,200,160,0.4)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg></div>
+            <h4>适当运动</h4>
+            <p>规律运动能调节生物钟、提高睡眠效率。但别在睡前2-3小时内剧烈运动。</p>
+        </div>
+
+        <!-- 4. Sun / Morning light -->
+        <div class="sol-card">
+            <div class="sol-icon-wrap"><svg viewBox="0 0 40 40" fill="none">
+                <!-- sun core -->
+                <circle cx="20" cy="17" r="7" stroke="#d0a050" stroke-width="1.4" fill="rgba(208,160,80,0.08)"/>
+                <circle cx="20" cy="17" r="4" fill="rgba(208,160,80,0.12)"/>
+                <!-- sun rays -->
+                <line x1="20" y1="7" x2="20" y2="4" stroke="#d0a050" stroke-width="1.2" stroke-linecap="round"/>
+                <line x1="20" y1="27" x2="20" y2="25" stroke="rgba(208,160,80,0.5)" stroke-width="1" stroke-linecap="round"/>
+                <line x1="10" y1="17" x2="7" y2="17" stroke="rgba(208,160,80,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+                <line x1="30" y1="17" x2="33" y2="17" stroke="rgba(208,160,80,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+                <!-- diagonal rays -->
+                <line x1="13" y1="10" x2="11" y2="8" stroke="rgba(208,160,80,0.35)" stroke-width="0.8" stroke-linecap="round"/>
+                <line x1="27" y1="10" x2="29" y2="8" stroke="rgba(208,160,80,0.35)" stroke-width="0.8" stroke-linecap="round"/>
+                <line x1="13" y1="24" x2="11" y2="26" stroke="rgba(208,160,80,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <line x1="27" y1="24" x2="29" y2="26" stroke="rgba(208,160,80,0.25)" stroke-width="0.6" stroke-linecap="round"/>
+                <!-- small sparkles around -->
+                <circle cx="34" cy="10" r="0.7" fill="rgba(208,160,80,0.3)"/>
+                <circle cx="6" cy="12" r="0.5" fill="rgba(208,160,80,0.25)"/>
+                <circle cx="35" cy="22" r="0.4" fill="rgba(208,160,80,0.2)"/>
+                <!-- horizon / landscape -->
+                <path d="M2,32 Q8,28 14,30 Q20,26 26,30 Q32,28 38,32" stroke="rgba(208,160,80,0.3)" stroke-width="0.8" fill="none"/>
+                <line x1="2" y1="33" x2="38" y2="33" stroke="rgba(208,160,80,0.15)" stroke-width="0.6"/>
+                <!-- trees / hills -->
+                <path d="M8,32 L10,28 L12,32" stroke="rgba(208,160,80,0.2)" stroke-width="0.8" fill="none"/>
+                <path d="M28,31 L31,26 L34,31" stroke="rgba(208,160,80,0.15)" stroke-width="0.7" fill="none"/>
+                <!-- person walking silhouette -->
+                <circle cx="20" cy="31" r="1" fill="rgba(208,160,80,0.25)"/>
+                <line x1="20" y1="32" x2="20" y2="35" stroke="rgba(208,160,80,0.2)" stroke-width="0.8"/>
+                <line x1="20" y1="33" x2="18" y2="35" stroke="rgba(208,160,80,0.15)" stroke-width="0.6"/>
+                <line x1="20" y1="33" x2="22" y2="35" stroke="rgba(208,160,80,0.15)" stroke-width="0.6"/>
+            </svg></div>
+            <h4>多晒早晨的光</h4>
+            <p>每天至少30分钟户外光照。光线是调节生物钟最有力的信号。</p>
+        </div>
+
+        <!-- 5. Coffee cup -->
+        <div class="sol-card">
+            <div class="sol-icon-wrap"><svg viewBox="0 0 40 40" fill="none">
+                <!-- saucer -->
+                <ellipse cx="18" cy="35" rx="12" ry="2.5" fill="rgba(96,144,184,0.06)" stroke="rgba(96,144,184,0.2)" stroke-width="0.6"/>
+                <!-- cup body -->
+                <path d="M10,20 L10,30 Q10,34 18,34 Q26,34 26,30 L26,20" stroke="#6090b8" stroke-width="1.4" fill="rgba(96,144,184,0.06)"/>
+                <!-- cup rim -->
+                <ellipse cx="18" cy="20" rx="8" ry="2" stroke="#6090b8" stroke-width="1.2" fill="rgba(96,144,184,0.04)"/>
+                <!-- handle -->
+                <path d="M26,22 Q32,22 32,27 Q32,32 26,32" stroke="#6090b8" stroke-width="1.2" fill="none"/>
+                <!-- coffee surface -->
+                <ellipse cx="18" cy="22" rx="6" ry="1.3" fill="rgba(96,144,184,0.1)"/>
+                <!-- steam -->
+                <path d="M14,18 Q16,13 14,8" stroke="rgba(128,200,255,0.25)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+                <path d="M18,17 Q20,11 18,5" stroke="rgba(128,200,255,0.3)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+                <path d="M22,18 Q24,14 22,9" stroke="rgba(128,200,255,0.2)" stroke-width="0.7" fill="none" stroke-linecap="round"/>
+                <!-- clock icon with X (time limit) -->
+                <circle cx="34" cy="8" r="4" stroke="#e07080" stroke-width="0.8" fill="rgba(224,112,128,0.06)"/>
+                <line x1="34" y1="8" x2="34" y2="5.5" stroke="#e07080" stroke-width="0.7" stroke-linecap="round"/>
+                <line x1="34" y1="8" x2="36" y2="8" stroke="#e07080" stroke-width="0.6" stroke-linecap="round"/>
+                <text x="36" y="6" font-size="4.5" fill="rgba(224,112,128,0.5)">PM</text>
+                <text x="31" y="16" font-size="5" fill="rgba(224,112,128,0.4)" font-weight="bold">1:00</text>
+            </svg></div>
+            <h4>控制咖啡因</h4>
+            <p>下午1点后不喝咖啡或浓茶。咖啡因在体内停留时间比你想象的长得多。</p>
+        </div>
+
+        <!-- 6. Brain + calm waves -->
+        <div class="sol-card">
+            <div class="sol-icon-wrap"><svg viewBox="0 0 40 40" fill="none">
+                <!-- head outline -->
+                <ellipse cx="20" cy="16" rx="12" ry="13" stroke="#80c8ff" stroke-width="1.3" fill="rgba(80,168,240,0.04)"/>
+                <!-- brain left hemisphere -->
+                <path d="M20,6 Q12,6 10,12 Q8,18 12,22 Q14,24 16,22 Q16,20 14,19 Q13,17 15,15 Q16,13 18,14" stroke="#80c8ff" stroke-width="0.8" fill="rgba(80,168,240,0.06)"/>
+                <!-- brain right hemisphere -->
+                <path d="M20,6 Q28,6 30,12 Q32,18 28,22 Q26,24 24,22 Q24,20 26,19 Q27,17 25,15 Q24,13 22,14" stroke="rgba(128,200,255,0.6)" stroke-width="0.7" fill="rgba(80,168,240,0.04)"/>
+                <!-- brain center line -->
+                <line x1="20" y1="7" x2="20" y2="22" stroke="rgba(128,200,255,0.2)" stroke-width="0.5"/>
+                <!-- brain folds left -->
+                <path d="M13,11 Q15,10 16,12" stroke="rgba(128,200,255,0.35)" stroke-width="0.6" fill="none"/>
+                <path d="M11,16 Q13,15 14,17" stroke="rgba(128,200,255,0.3)" stroke-width="0.5" fill="none"/>
+                <path d="M12,20 Q14,19 15,21" stroke="rgba(128,200,255,0.25)" stroke-width="0.5" fill="none"/>
+                <!-- brain folds right -->
+                <path d="M24,12 Q26,11 27,13" stroke="rgba(128,200,255,0.25)" stroke-width="0.5" fill="none"/>
+                <path d="M26,16 Q28,15 28,17" stroke="rgba(128,200,255,0.2)" stroke-width="0.5" fill="none"/>
+                <!-- calm waves below -->
+                <path d="M4,33 Q8,31 12,33 Q16,35 20,33 Q24,31 28,33 Q32,35 36,33" stroke="rgba(80,168,240,0.25)" stroke-width="0.8" fill="none"/>
+                <path d="M6,36 Q10,34 14,36 Q18,38 22,36 Q26,34 30,36 Q34,38 38,36" stroke="rgba(80,168,240,0.15)" stroke-width="0.6" fill="none"/>
+                <!-- sparkle dots around head -->
+                <circle cx="7" cy="10" r="0.6" fill="rgba(128,200,255,0.3)"/>
+                <circle cx="33" cy="10" r="0.5" fill="rgba(128,200,255,0.25)"/>
+                <circle cx="5" cy="18" r="0.4" fill="rgba(128,200,255,0.2)"/>
+                <circle cx="35" cy="16" r="0.5" fill="rgba(128,200,255,0.2)"/>
+                <!-- peace sign / lotus -->
+                <circle cx="32" cy="28" r="2.5" stroke="rgba(92,200,160,0.3)" stroke-width="0.6" fill="none"/>
+                <path d="M30.5,28 L33.5,28 M32,26 Q30.5,27 30.5,28 Q30.5,29 32,30" stroke="rgba(92,200,160,0.35)" stroke-width="0.5" fill="none"/>
+            </svg></div>
+            <h4>放松大脑</h4>
+            <p>试试冥想、深呼吸或渐进式肌肉放松。不要带着问题上床。</p>
+        </div>
+
+    </div>
+    <div class="commentary">
+        <div class="hl-box"><p>"健康中国2030"已将睡眠健康纳入规划，22个省市把睡眠质量列为职工体检必查项。改变不会一夜发生，但你可以从今晚开始——固定起床时间，把手机放到卧室外面，在23:00前闭上眼睛。</p></div>
+    </div>
+</div>
+
+</div>
+
+<footer class="footer">
+    <p class="fq">"能够安然入眠的夜晚，才是对'进步'最人性的诠释。"</p>
+    <p>数据来源：中国睡眠研究会 · 北京大学陆林院士团队 · 《JAMA Network Open》 · 《Science Advances》 · 《Nature Communications》<br>本文为数据新闻可视化作品，数据截至2026年3月。健康建议仅供参考，严重睡眠问题请咨询专业医师。</p>
+</footer>
+
+<script>
+const sky=document.getElementById('sky');
+for(let i=0;i<140;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.setProperty('--d',(1.5+Math.random()*3)+'s');s.style.animationDelay=Math.random()*3+'s';const sz=1+Math.random()*2;s.style.width=s.style.height=sz+'px';sky.appendChild(s)}
+function spawnM(){const m=document.createElement('div');m.className='meteor';m.style.left=(8+Math.random()*84)+'%';m.style.top='-70px';m.style.height=(55+Math.random()*45)+'px';const dur=1400+Math.random()*1400;m.style.animation=`meteorFall ${dur}ms linear forwards`;sky.appendChild(m);setTimeout(()=>m.remove(),dur);setTimeout(spawnM,2200+Math.random()*5500)}
+setTimeout(spawnM,800);
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')}),{threshold:.07});
+document.querySelectorAll('.rv,.section,.news-intro').forEach(el=>obs.observe(el));
+function openM(t,b){document.getElementById('mT').textContent=t;document.getElementById('mB').innerHTML=b;document.getElementById('modal').classList.add('on')}
+function closeM(){document.getElementById('modal').classList.remove('on')}
+const WH='#e0ecff';
+
+/* PIE */
+const pieChart=echarts.init(document.getElementById('pieChart'));
+const pieData=[
+    {value:20,name:'21:00–23:00\n正常作息',itemStyle:{color:'#e0e8f0'},info:`<p>这个时段入睡的人群主要包括：</p><ul><li><strong>65岁以上老年人</strong>——68%在这个时段入睡</li><li><strong>农村居民</strong>——平均入睡22:45</li><li><strong>体力劳动者</strong>——体力消耗大，入睡较早</li><li><strong>三线及以下城市居民</strong>——生活节奏慢</li><li><strong>坚持早起运动的人群</strong></li></ul><p style="margin-top:.6rem;color:var(--teal)">这类人情绪更稳定，免疫力更好。</p>`},
+    {value:39,name:'23:00–00:00\n轻度熬夜',itemStyle:{color:'#70b0e0'},info:`<p>这个时段入睡的人群主要包括：</p><ul><li><strong>普通上班族</strong>——下班后2-3小时个人时间</li><li><strong>有孩家庭的父母</strong>——等孩子睡了才有自己时间</li><li><strong>偶尔加班的白领</strong></li><li><strong>照顾老人的家庭成员</strong></li></ul><p style="margin-top:.6rem;color:var(--blue)">入睡不算太晚，但已错过身体修复的黄金时段。</p>`},
+    {value:28,name:'00:00–02:00\n中度熬夜',itemStyle:{color:'#3a78c0'},info:`<p>这个时段入睡的人群主要包括：</p><ul><li><strong>大学生</strong>——55%在这个时段入睡</li><li><strong>互联网/科技从业者</strong>——加班文化盛行</li><li><strong>"报复性熬夜"人群</strong></li><li><strong>短视频/游戏爱好者</strong></li><li><strong>自由职业者/创业者</strong></li></ul><p style="margin-top:.6rem;color:var(--amber)">长期在这个时段入睡，心血管和代谢风险显著上升。</p>`},
+    {value:10,name:'02:00以后\n重度熬夜',itemStyle:{color:'#1a5090'},info:`<p>这个时段入睡的人群主要包括：</p><ul><li><strong>值夜班的医护人员</strong></li><li><strong>直播从业者</strong>——凌晨是流量高峰</li><li><strong>新生儿父母</strong>——夜间醒觉3.5次/天</li><li><strong>严重失眠患者</strong></li></ul><p style="margin-top:.6rem;color:var(--red)">凌晨2点后入睡，身体几乎无法完成深度修复。</p>`},
+    {value:3,name:'作息极度不规律',itemStyle:{color:'#c0d0e8'},info:`<p>作息不规律的人群主要包括：</p><ul><li><strong>轮班制工人</strong></li><li><strong>频繁跨时区出差的商务人士</strong></li><li><strong>自由职业/远程工作者</strong></li><li><strong>慢性病患者</strong>——睡眠障碍是普通人2.3倍</li></ul><p style="margin-top:.6rem;color:var(--blue-l)">不规律比单纯晚睡更危险——身体始终处于"倒时差"状态。</p>`}
+];
+pieChart.setOption({tooltip:{trigger:'item',backgroundColor:'rgba(10,20,42,.95)',borderColor:'rgba(80,168,240,.25)',textStyle:{color:WH,fontSize:13}},legend:{orient:'vertical',right:'3%',top:'center',textStyle:{color:'rgba(160,192,232,.8)',fontSize:11},itemWidth:10,itemHeight:10,itemGap:14},series:[{type:'pie',radius:['40%','70%'],center:['36%','50%'],itemStyle:{borderRadius:6,borderColor:'rgba(14,28,52,.92)',borderWidth:3},label:{show:true,position:'outside',color:'rgba(180,200,220,.85)',fontSize:10,formatter:'{d}%'},labelLine:{lineStyle:{color:'rgba(120,160,200,.3)'}},emphasis:{label:{fontSize:13,fontWeight:'bold',color:WH},itemStyle:{shadowBlur:25,shadowColor:'rgba(80,168,240,.25)'}},data:pieData}]});
+pieChart.on('click',p=>{if(p.componentType==='series')openM(p.name.replace('\n',' '),p.data.info)});
+
+/* WORD CLOUD */
+const words=[{t:'工作压力',s:3.5,d:.1,tip:'长时间加班是熬夜最大推手。76%上班族睡前还要处理工作消息。'},{t:'手机依赖',s:3.2,d:.2,tip:'睡前1小时89%的人还在刷手机。蓝光抑制褪黑素，越刷越清醒。'},{t:'报复性熬夜',s:3.0,d:.3,tip:'73%的人说熬夜是"唯一属于自己的时间"。'},{t:'焦虑',s:2.8,d:.4,tip:'越想睡越睡不着，越睡不着越焦虑。'},{t:'内卷',s:2.7,d:.5,tip:'"学习充电"作为熬夜理由从17%升至39%。'},{t:'学业压力',s:2.5,d:.6,tip:'大学生平均入睡0:33，59%存在失眠。'},{t:'短视频',s:2.4,d:.7,tip:'"再刷一个就睡"——算法精确计算你的多巴胺阈值。'},{t:'996',s:2.3,d:.8,tip:'早9晚9一周6天，下班已是深夜。'},{t:'情绪困扰',s:2.2,d:.9,tip:'失眠者患抑郁症风险是正常人3-5倍。'},{t:'失眠',s:2.1,d:1,tip:'82%的人存在睡眠困扰，26%每晚睡不到6小时。'},{t:'追剧',s:1.9,d:1.1,tip:'自动播放让追剧变成无底洞。'},{t:'游戏',s:1.8,d:1.2,tip:'竞技游戏让大脑处于"战斗模式"。'},{t:'咖啡续命',s:1.7,d:1.3,tip:'白天靠咖啡撑，晚上又睡不着。'},{t:'知识焦虑',s:1.9,d:1.4,tip:'"不学习就会被淘汰"的恐惧。'},{t:'生物钟紊乱',s:1.8,d:1.5,tip:'长期不规律作息让身体内部时钟失准。'},{t:'夜班',s:1.6,d:1.6,tip:'夜班工作者癌症风险高出30%以上。'},{t:'新手父母',s:1.6,d:1.7,tip:'夜间醒觉3.5次/天，睡眠被切成碎片。'},{t:'打游戏',s:1.5,d:1.8,tip:'队友还在打，你不好意思先走。'},{t:'社交',s:1.4,d:1.9,tip:'晚上是社交黄金时间。'},{t:'多巴胺',s:1.6,d:2,tip:'深夜刺激快速释放多巴胺，让人越熬越清醒。'}];
+const wcEl=document.getElementById('wordCloud');let openTip=null;
+words.forEach(w=>{const sp=document.createElement('span');sp.className='cw';sp.textContent=w.t;sp.style.fontSize=w.s+'rem';const tip=document.createElement('span');tip.className='cw-tip';tip.textContent=w.tip;sp.appendChild(tip);sp.addEventListener('click',e=>{e.stopPropagation();if(openTip&&openTip!==tip)openTip.classList.remove('show');tip.classList.toggle('show');openTip=tip.classList.contains('show')?tip:null});wcEl.appendChild(sp);setTimeout(()=>sp.classList.add('pop'),200+w.d*400)});
+document.addEventListener('click',()=>{if(openTip){openTip.classList.remove('show');openTip=null}});
+
+/* RADAR */
+const radarChart=echarts.init(document.getElementById('radarChart'));
+radarChart.setOption({tooltip:{backgroundColor:'rgba(10,20,42,.95)',borderColor:'rgba(80,168,240,.25)',textStyle:{color:WH,fontSize:12}},radar:{indicator:[{name:'心血管\n系统',max:100},{name:'免疫\n系统',max:100},{name:'代谢\n系统',max:100},{name:'认知\n功能',max:100},{name:'皮肤\n状态',max:100},{name:'情绪\n健康',max:100}],center:['50%','52%'],radius:'62%',axisName:{color:'rgba(160,192,232,.7)',fontSize:11},splitLine:{lineStyle:{color:'rgba(80,168,240,.1)'}},splitArea:{areaStyle:{color:['rgba(80,168,240,.02)','rgba(80,168,240,.04)']}},axisLine:{lineStyle:{color:'rgba(80,168,240,.1)'}}},series:[{type:'radar',data:[{value:[45,38,52,42,55,40],name:'长期熬夜者',areaStyle:{color:{type:'radial',x:.5,y:.5,r:.6,colorStops:[{offset:0,color:'rgba(224,112,128,.2)'},{offset:1,color:'rgba(224,112,128,.02)'}]}},lineStyle:{color:'#e07080',width:2.5},itemStyle:{color:'#e07080'},symbol:'circle',symbolSize:7},{value:[85,88,82,90,78,86],name:'规律作息者',areaStyle:{color:{type:'radial',x:.5,y:.5,r:.6,colorStops:[{offset:0,color:'rgba(144,208,255,.2)'},{offset:1,color:'rgba(144,208,255,.02)'}]}},lineStyle:{color:'#90d0ff',width:2.5},itemStyle:{color:'#90d0ff'},symbol:'circle',symbolSize:7}]}],legend:{bottom:10,textStyle:{color:'rgba(160,192,232,.7)',fontSize:11},itemWidth:14,itemHeight:8}});
+function showR(t){if(t==='bad')openM('长期熬夜者的健康状况',`<div class="cmp-row"><div class="cmp-card"><h4>心血管风险</h4><div class="cv">+34%</div><p>全因死亡风险增加</p></div><div class="cmp-card"><h4>中风风险</h4><div class="cv">4.5x</div><p>是正常人的倍数</p></div></div><div class="cmp-row"><div class="cmp-card"><h4>免疫失控</h4><div class="cv">1天</div><p>一天不眠即引发炎症</p></div><div class="cmp-card"><h4>肿瘤风险</h4><div class="cv">3x</div><p>实验小鼠肿瘤体积</p></div></div><ul><li><strong>认知下降：</strong>倒班10年以上记忆力和反应力明显减退</li><li><strong>代谢紊乱：</strong>瘦素减少、胃饥饿素增加，更容易暴食发胖</li><li><strong>心脏危机：</strong>生物钟脱钩增加心律失常和猝死风险</li><li><strong>皮肤老化：</strong>成长荷尔蒙分泌不足，细胞修复变慢</li><li><strong>情绪崩溃：</strong>失眠者患抑郁症风险是正常人3-5倍</li><li><strong>大脑"积毒"：</strong>深度睡眠时大脑清洁系统停摆</li></ul>`);
+else openM('规律作息者的健康状况',`<div class="cmp-row"><div class="cmp-card w"><h4>心血管</h4><div class="cv">正常</div><p>风险回归基准</p></div><div class="cmp-card w"><h4>免疫功能</h4><div class="cv">88分</div><p>免疫细胞正常运作</p></div></div><div class="cmp-row"><div class="cmp-card w"><h4>认知表现</h4><div class="cv">90分</div><p>记忆力和反应力最佳</p></div><div class="cmp-card w"><h4>情绪稳定</h4><div class="cv">86分</div><p>焦虑抑郁风险低</p></div></div><ul><li><strong>心脏节律同步：</strong>生物钟协调，心律失常风险显著降低</li><li><strong>深度修复：</strong>成长荷尔蒙正常分泌，免疫重建高效运转</li><li><strong>大脑清洁：</strong>"类淋巴系统"正常清除代谢废物</li><li><strong>代谢平衡：</strong>瘦素和胃饥饿素正常分泌</li><li><strong>衰老减缓：</strong>6.4-7.8小时/天是器官衰老最慢区间</li><li><strong>情绪积极：</strong>更倾向早起运动，形成正向循环</li></ul>`)}
+
+/* DONUT */
+const donutChart=echarts.init(document.getElementById('donutChart'));
+donutChart.setOption({tooltip:{trigger:'item',backgroundColor:'rgba(10,20,42,.95)',borderColor:'rgba(80,168,240,.25)',textStyle:{color:WH,fontSize:13}},graphic:[{type:'text',left:'center',top:'34%',style:{text:'82%',textAlign:'center',fill:'#70b0e0',fontSize:48,fontFamily:'Noto Serif SC,serif',fontWeight:'900'}},{type:'text',left:'center',top:'48%',style:{text:'的人知道熬夜不健康',textAlign:'center',fill:'rgba(160,192,232,.7)',fontSize:14}},{type:'text',left:'center',top:'58%',style:{text:'但仅12%能实现"睡眠自由"',textAlign:'center',fill:'rgba(224,112,128,.6)',fontSize:12}}],series:[{type:'pie',radius:['56%','76%'],center:['50%','46%'],startAngle:180,endAngle:360,label:{show:false},itemStyle:{borderColor:'rgba(14,28,52,.92)',borderWidth:4,borderRadius:8},emphasis:{itemStyle:{shadowBlur:25,shadowColor:'rgba(80,168,240,.25)'}},data:[{value:82,name:'知道熬夜不健康',itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:'#70b0e0'},{offset:1,color:'#90d0ff'}]}},info:`<p style="margin-bottom:.8rem">知道自己在透支健康，但生活不允许他们停下来。</p><div class="modal-quote">"我也想早睡，但加班到10点，洗漱完就11点了，再刷会手机就凌晨了。"<span class="qw">——某互联网产品经理，28岁</span></div><div class="modal-quote">"孩子睡了才有自己的时间，哪怕只是安静刷会手机。这段'偷来的时间'是心理救赎。"<span class="qw">——新手妈妈，30岁</span></div>`},{value:13,name:'认为无所谓',itemStyle:{color:'rgba(112,176,224,.25)'},info:`<p style="margin-bottom:.8rem">约13%的人对熬夜持"无所谓"态度——通常年轻，身体还没出问题。</p><div class="modal-quote">"我天天两三点睡，第二天照样精神，有什么问题？"<span class="qw">——大学生，21岁</span></div><p style="margin-top:.6rem;color:var(--amber)">⚠️ 熬夜的危害是"延迟爆发"的。伤害在悄悄积累，通常30岁后集中显现。</p>`},{value:5,name:'不知道/不确定',itemStyle:{color:'rgba(112,176,224,.1)'},info:`<p style="margin-bottom:.8rem">约5%的人对睡眠知识了解甚少。</p><div class="modal-quote">"我知道熬夜不好，但具体哪里不好？好像没人认真跟我说过。"<span class="qw">——高中生，17岁</span></div><p style="margin-top:.6rem;color:var(--blue)">💡 很多人只知道"熬夜不好"，但不清楚具体会增加心血管疾病、癌症、抑郁等风险。</p>`}]}]});
+donutChart.on('click',p=>{if(p.componentType==='series')openM(p.name,p.data.info)});
+
+/* QUIZ */
+const quizQs=[{q:'每晚从7小时缩短到5.5小时，全因死亡风险增加多少？',opts:['10%','20%','34%','50%'],ans:2,exp:'《JAMA Network Open》研究：全因死亡风险增加34%。'},{q:'人不睡觉多久，免疫细胞就会开始失控？',opts:['一周','三天','两天','一天'],ans:3,exp:'《免疫学杂志》：哪怕只一天不睡，免疫细胞就会失控。'},{q:'中国成年人存在睡眠困扰的比例约是多少？',opts:['25%','35%','48.5%','65%'],ans:2,exp:'《2025白皮书》：18岁以上人群睡眠困扰率48.5%。'},{q:'关于"补觉"，以下哪种说法正确？',opts:['周末多睡能完全补回来','睡超10小时可能有害','补觉越多越好','白天多睡可以完全弥补'],ans:1,exp:'研究发现：睡眠超10小时的人精神疾患风险反而更高。'}];
+let qi=0,score=0;
+function initP(){const e=document.getElementById('qProg');e.innerHTML='';quizQs.forEach((_,i)=>{const d=document.createElement('div');d.className='dp';d.id='pd'+i;e.appendChild(d)});document.getElementById('pd0').classList.add('cur')}
+function loadQ(){const q=quizQs[qi];document.getElementById('qQ').textContent=`第${qi+1}/${quizQs.length}题：${q.q}`;const o=document.getElementById('qOpts');o.innerHTML='';document.getElementById('qResult').innerHTML='';q.opts.forEach((opt,i)=>{const b=document.createElement('button');b.className='q-opt';b.textContent=opt;b.onclick=()=>chkQ(i,b);o.appendChild(b)})}
+function chkQ(i,btn){const q=quizQs[qi];document.querySelectorAll('.q-opt').forEach(b=>b.style.pointerEvents='none');const dot=document.getElementById('pd'+qi);if(i===q.ans){btn.classList.add('correct');score++;dot.classList.remove('cur');dot.classList.add('ok');document.getElementById('qResult').innerHTML=`<strong style="color:var(--teal)">✓ 正确！</strong> ${q.exp}`}else{btn.classList.add('wrong');document.querySelectorAll('.q-opt')[q.ans].classList.add('correct');dot.classList.remove('cur');dot.classList.add('bad');document.getElementById('qResult').innerHTML=`<strong style="color:var(--red)">✗ 答错了。</strong> ${q.exp}`}qi++;if(qi<quizQs.length){document.getElementById('pd'+qi).classList.add('cur');setTimeout(loadQ,3200)}else setTimeout(showRpt,3200)}
+function showRpt(){document.getElementById('quizArea').style.display='none';const r=document.getElementById('quizReport');r.style.display='block';const pct=Math.round(score/quizQs.length*100);document.getElementById('rPct').textContent=pct+'%';setTimeout(()=>{document.getElementById('rRing').style.strokeDashoffset=427-427*pct/100},100);const levels=[{min:100,l:'睡眠达人',m:'你对睡眠知识非常了解！把这些知识用在生活中，也分享给身边的人吧。',c:'#5cc8a0'},{min:75,l:'睡眠优等生',m:'大部分知识你都掌握了。还有少量盲区，继续保持关注。',c:'#50a8f0'},{min:50,l:'睡眠学习者',m:'你对睡眠有一些了解，但也存在不少误区。建议多看看权威的睡眠健康知识。',c:'#d0a050'},{min:25,l:'睡眠小白',m:'你对睡眠的了解还不够多。别担心，从今天开始学习，为时不晚！',c:'#d0a050'},{min:0,l:'睡眠危机',m:'你对睡眠危害的认知严重不足！这可能会让你在不知不觉中透支健康。',c:'#e07080'}];const lv=levels.find(l=>pct>=l.min);document.getElementById('rLvl').textContent='你的等级：'+lv.l;document.getElementById('rLvl').style.color=lv.c;document.getElementById('rMsg').textContent=lv.m}
+function restartQ(){qi=0;score=0;document.getElementById('quizArea').style.display='block';document.getElementById('quizReport').style.display='none';initP();loadQ()}
+initP();loadQ();
+function calcBed(){const w=document.getElementById('wakeTime').value,h=parseFloat(document.getElementById('ageGroup').value),[wh,wm]=w.split(':').map(Number),total=h+0.25;let bh=wh-Math.floor(total),bm=Math.round(wm-(total%1)*60);if(bm<0){bm+=60;bh--}if(bh<0)bh+=24;const bed=String(bh).padStart(2,'0')+':'+String(bm).padStart(2,'0');const wh2=bh>0?bh-1:23;const wind=String(wh2).padStart(2,'0')+':'+String(bm).padStart(2,'0');document.getElementById('calcResult').innerHTML=`<div class="rt">${bed} 入睡</div><div class="rt2">${wind} 开始准备睡觉</div><div class="ri">建议在${wind}前放下手机、调暗灯光<br>${bed}前15分钟上床放松身心<br>每晚保证约 ${h} 小时的充足睡眠</div>`}
+document.querySelectorAll('.pledge-opt').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('active')));
+function submitPledge(){const sel=document.querySelectorAll('.pledge-opt.active');if(!sel.length){document.querySelector('.pledge-counter').innerHTML='<span style="color:var(--amber)">请至少选一个承诺</span>';return}let c=parseInt(document.getElementById('pledgeCount').textContent.replace(/,/g,''));c+=sel.length;document.getElementById('pledgeCount').textContent=c.toLocaleString();document.querySelector('.pledge-counter').innerHTML=`已有 <span>${c.toLocaleString()}</span> 人做出承诺 — 感谢参与，今晚好梦`;sel.forEach(b=>{b.style.pointerEvents='none';b.style.opacity='.5'})}
+window.addEventListener('resize',()=>{pieChart.resize();radarChart.resize();donutChart.resize()});
+</script>
+</body>
+</html>
